@@ -17,8 +17,6 @@ EngineerManual::EngineerManual(ros::NodeHandle& nh, ros::NodeHandle& nh_referee)
   // Command sender
   ros::NodeHandle nh_drag(nh, "drag");
   drag_command_sender_ = new rm_common::JointPositionBinaryCommandSender(nh_drag);
-  ros::NodeHandle nh_card(nh, "card");
-  card_command_sender_ = new rm_common::CardCommandSender(nh_card);
   // Servo
   ros::NodeHandle nh_servo(nh, "servo");
   servo_command_sender_ = new rm_common::Vel3DCommandSender(nh_servo);
@@ -199,7 +197,7 @@ void EngineerManual::leftSwitchUpRise()
 
 void EngineerManual::leftSwitchUpFall()
 {
-  runStepQueue("STORED_HOME0");
+  runStepQueue("NORMAL_HOME0");
 }
 
 void EngineerManual::leftSwitchDownFall()
