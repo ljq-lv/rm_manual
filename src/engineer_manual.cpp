@@ -194,10 +194,14 @@ void EngineerManual::leftSwitchUpRise()
 
 void EngineerManual::leftSwitchUpFall()
 {
-  switch (stone_num_) {
-      case 0: root_ = "HOME0";
-      case 1: root_ = "HOME1";
-      case 2: root_ = "HOME2";
+  switch (stone_num_)
+  {
+    case 0:
+      root_ = "HOME0";
+    case 1:
+      root_ = "HOME1";
+    case 2:
+      root_ = "HOME2";
   }
   runStepQueue(root_);
   ROS_INFO("RUN_HOME");
@@ -310,10 +314,14 @@ void EngineerManual::ctrlFPress()
 
 void EngineerManual::ctrlGPress()
 {
-  switch (stone_num_) {
-      case 0: root_ = "STORE_STONE0";
-      case 1: root_ = "STORE_STONE1";
-      case 2: root_ = "STORE_STONE2";
+  switch (stone_num_)
+  {
+    case 0:
+      root_ = "STORE_STONE0";
+    case 1:
+      root_ = "STORE_STONE1";
+    case 2:
+      root_ = "STORE_STONE2";
   }
   stone_num_ += 1;
   ROS_INFO("STORE_STONE");
@@ -321,7 +329,7 @@ void EngineerManual::ctrlGPress()
 
 void EngineerManual::ctrlZPress()
 {
-  //reversal
+  // reversal
   toward_change_mode_ = 0;
   runStepQueue("REVERSAL_GIMBAL");
   ROS_INFO("enter gimbal WALK_GIMBAL");
@@ -330,31 +338,29 @@ void EngineerManual::ctrlZPress()
 
 void EngineerManual::ctrlXPress()
 {
-  //gimbal
+  // gimbal
   gimbal_mode_ = RATE;
+  ROS_INFO("Z");
   ROS_INFO("MANUAL_VIEW");
 }
 
 void EngineerManual::ctrlCPress()
 {
-  //servo
-  if (servo_mode_ == JOINT)
-  {
-      servo_mode_ = SERVO;
-      servo_reset_caller_->callService();
-      ROS_INFO("ENTER SERVO");
-  } else{
-      servo_mode_ = JOINT;
-      ROS_INFO("OUT SERVO");
-  }
+  // servo
+  action_client_.cancelAllGoals();
+  runStepQueue("DELETE SCENE");
 }
 
 void EngineerManual::ctrlBPress()
 {
-  switch (stone_num_) {
-      case 0: root_ = "HOME0";
-      case 1: root_ = "HOME1";
-      case 2: root_ = "HOME2";
+  switch (stone_num_)
+  {
+    case 0:
+      root_ = "HOME0";
+    case 1:
+      root_ = "HOME1";
+    case 2:
+      root_ = "HOME2";
   }
   ROS_INFO("RUN_HOME");
 }
@@ -371,30 +377,30 @@ void EngineerManual::xPress()
 
 void EngineerManual::cPress()
 {
-
 }
 
 void EngineerManual::rPress()
 {
-
+  ROS_INFO("QWE");
+  runStepQueue("test");
 }
 
 void EngineerManual::vPress()
 {
-   //reversal roll
+  // reversal roll
 }
 
 void EngineerManual::gPress()
 {
-  //reversal pitch
+  // reversal pitch
 }
 void EngineerManual::gRelease()
 {
-  //reversal down
+  // reversal down
 }
 void EngineerManual::fPress()
 {
-  //reversal up
+  // reversal up
 }
 void EngineerManual::shiftPressing()
 {
@@ -407,53 +413,53 @@ void EngineerManual::shiftRelease()
 
 void EngineerManual::shiftQPress()
 {
-    toward_change_mode_ = 0;
-    runStepQueue("SMALL_ISLAND_GIMBAL");
-    ROS_INFO("enter gimbal SMALL_ISLAND_GIMBAL");
+  toward_change_mode_ = 0;
+  runStepQueue("SMALL_ISLAND_GIMBAL");
+  ROS_INFO("enter gimbal SMALL_ISLAND_GIMBAL");
 }
 void EngineerManual::shiftEPress()
 {
-    toward_change_mode_ = 0;
-    runStepQueue("BIG_ISLAND_GIMBAL");
-    ROS_INFO("enter gimbal BIG_ISLAND_GIMBAL");
+  toward_change_mode_ = 0;
+  runStepQueue("BIG_ISLAND_GIMBAL");
+  ROS_INFO("enter gimbal BIG_ISLAND_GIMBAL");
 }
 
 void EngineerManual::shiftCPress()
 {
-    toward_change_mode_ = 0;
-    runStepQueue("EXCHANGE_GIMBAL");
-    ROS_INFO("enter gimbal EXCHANGE_GIMBAL");
+  toward_change_mode_ = 0;
+  runStepQueue("EXCHANGE_GIMBAL");
+  ROS_INFO("enter gimbal EXCHANGE_GIMBAL");
 }
 void EngineerManual::shiftZPress()
 {
-    toward_change_mode_ = 0;
-    runStepQueue("GROUND_GIMBAL");
-    ROS_INFO("enter gimbal GROUND_GIMBAL");
+  toward_change_mode_ = 0;
+  runStepQueue("GROUND_GIMBAL");
+  ROS_INFO("enter gimbal GROUND_GIMBAL");
 }
 
 void EngineerManual::shiftXPress()
 {
-    //gripper
-    if (gripper_state_ == 0)
-    {
-        runStepQueue("OPEN_GRIPPER");
-        ROS_INFO("GRIPPER OPEN");
-        gripper_state_ = 1;
-    }
-    else
-    {
-        runStepQueue("CLOSE_GRIPPER");
-        ROS_INFO("GRIPPER CLOSE");
-        gripper_state_ = 1;
-    }
+  // gripper
+  if (gripper_state_ == 0)
+  {
+    runStepQueue("OPEN_GRIPPER");
+    ROS_INFO("GRIPPER OPEN");
+    gripper_state_ = 1;
+  }
+  else
+  {
+    runStepQueue("CLOSE_GRIPPER");
+    ROS_INFO("GRIPPER CLOSE");
+    gripper_state_ = 1;
+  }
 }
 
 void EngineerManual::shiftVPress()
 {
-  //drag
+  // drag
   if (drag_state_ == 0)
-      ROS_INFO("DRAG UP");
+    ROS_INFO("DRAG UP");
   else
-      ROS_INFO("DRAG DOWN");
+    ROS_INFO("DRAG DOWN");
 }
 }  // namespace rm_manual
