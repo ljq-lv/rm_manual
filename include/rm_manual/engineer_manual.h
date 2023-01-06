@@ -46,16 +46,16 @@ private:
   void leftSwitchUpRise() override;
   void leftSwitchUpFall();
   void leftSwitchDownFall();
-  void ctrlQPress();  // LF small island
-  void ctrlWPress();  // SKY island
-  void ctrlEPress();  // RT small island
-  void ctrlAPress();  // MID small island
-  void ctrlSPress();  // MID big island
-  void ctrlDPress();  // Ground stone
-  void ctrlZPress();  // Drag back
-  void ctrlXPress();  // Drag down
-  void ctrlCPress();  // Cancel name
-  void ctrlVPress();  // Gripper
+  void ctrlQPress();     // LF small island
+  void ctrlWPress();     // SKY island
+  void ctrlEPress();     // RT small island
+  void ctrlAPress();     // MID small island
+  void ctrlSPress();     // MID big island
+  void ctrlDPress();     // Ground stone
+  void ctrlZPress();     // Drag back
+  void ctrlXPress();     // Drag down
+  void ctrlCPress();     // Cancel name
+  void ctrlVPress();     // Gripper
   void ctrlBPress();     // HOME
   void ctrlFPress();     // Exchange
   void ctrlGPress();     // Store stone
@@ -69,21 +69,23 @@ private:
   void shiftZPress();    //  Gimbal reversal
   void shiftXPress();    // Gimbal ground
   void shiftCPress();    //
-  void shiftBPress();   // Gimbal back to home
-  void shiftGPress();   // Take stone
-  void shiftVPress();  // Gimbal Rate Mode
+  void shiftBPress();    // Gimbal back to home
+  void shiftGPress();    // Take stone
+  void shiftVPress();    // Gimbal Rate Mode
   void shiftVRelease();
-  void rPress();             //
-  void qPress();             // Turn left
-  void ePress();             // Turn left
-  void zPress();             // Servo z
-  void zRelease();             //
-  void xPress();             //
-  void cPress();             // Servo z
-  void cRelease();             //
-  void bPress();             //
-  void bRelease();             //
-  void vPress();             // Reversal
+  void rPress();  //
+  void qPressing();
+  void qRelease();
+  void ePressing();
+  void eRelease();
+  void zPress();    // Servo z
+  void zRelease();  //
+  void xPress();    //
+  void cPress();    // Servo z
+  void cRelease();  //
+  void bPress();    //
+  void bRelease();  //
+  void vPress();    // Reversal
   void vRelease();
   void fPress();             // Reversal
   void fRelease();           //
@@ -110,7 +112,9 @@ private:
   };
 
   rm_msgs::EngineerCmd engineer_ui_;
-  ros::Publisher ui_send_;
+  rm_msgs::EngineerCmd drag_ui_;
+  rm_msgs::EngineerCmd reversal_ui_;
+  ros::Publisher ui_send_, drag_ui_send_, reversal_ui_send_;
   realtime_tools::RealtimeBuffer<rm_msgs::ReversalCmd> reversal_rt_buffer_;
   rm_msgs::ReversalCmd data_reversal_;
   double translate_err_{};
@@ -130,8 +134,9 @@ private:
   InputEvent left_switch_up_event_, left_switch_down_event_, ctrl_q_event_, ctrl_a_event_, ctrl_z_event_, ctrl_w_event_,
       ctrl_s_event_, ctrl_x_event_, ctrl_e_event_, ctrl_d_event_, ctrl_c_event_, ctrl_b_event_, ctrl_v_event_, z_event_,
       q_event_, e_event_, x_event_, c_event_, v_event_, b_event_, f_event_, shift_z_event_, shift_x_event_,
-      shift_c_event_, shift_v_event_, shift_b_event_, shift_g_event_, ctrl_r_event_, shift_q_event_, shift_e_event_, ctrl_g_event_,
-      shift_r_event_, ctrl_f_event_, shift_event_, g_event_, r_event_, mouse_left_event_, mouse_right_event_;
+      shift_c_event_, shift_v_event_, shift_b_event_, shift_g_event_, ctrl_r_event_, shift_q_event_, shift_e_event_,
+      ctrl_g_event_, shift_r_event_, ctrl_f_event_, shift_event_, g_event_, r_event_, mouse_left_event_,
+      mouse_right_event_;
 };
 
 }  // namespace rm_manual
