@@ -28,7 +28,8 @@ private:
   void updateRc(const rm_msgs::DbusData::ConstPtr& dbus_data) override;
   void updatePc(const rm_msgs::DbusData::ConstPtr& dbus_data) override;
   void sendCommand(const ros::Time& time) override;
-  void updateServo();
+  void updateServo(const rm_msgs::DbusData::ConstPtr& dbus_data);
+  void dbusDataCallback(const rm_msgs::DbusData::ConstPtr& data) override;
   void actionFeedbackCallback(const rm_msgs::EngineerFeedbackConstPtr& feedback);
   void actionDoneCallback(const actionlib::SimpleClientGoalState& state, const rm_msgs::EngineerResultConstPtr& result);
   void runStepQueue(const std::string& step_queue_name);
@@ -46,16 +47,17 @@ private:
   void leftSwitchUpRise() override;
   void leftSwitchUpFall();
   void leftSwitchDownFall();
-  void ctrlQPress();     // LF small island
-  void ctrlWPress();     // SKY island
-  void ctrlEPress();     // RT small island
-  void ctrlAPress();     // MID small island
-  void ctrlSPress();     // MID big island
-  void ctrlDPress();     // Ground stone
-  void ctrlZPress();     // Drag back
-  void ctrlXPress();     // Drag down
-  void ctrlCPress();     // Cancel name
-  void ctrlVPress();     // Gripper
+  void ctrlQPress();    // LF small island
+  void ctrlWPress();    // SKY island
+  void ctrlEPress();    // RT small island
+  void ctrlAPress();    // MID small island
+  void ctrlSPress();    // MID big island
+  void ctrlDPress();    // Ground stone
+  void ctrlZPress();    // Drag back
+  void ctrlXPress();    // Drag down
+  void ctrlCPress();    // Cancel name
+  void ctrlVRelease();  // Gripper
+  void ctrlVPress();
   void ctrlBPress();     // HOME
   void ctrlFPress();     // Exchange
   void ctrlGPress();     // Store stone
@@ -70,8 +72,9 @@ private:
   void shiftXPress();    // Gimbal ground
   void shiftCPress();    //
   void shiftBPress();    // Gimbal back to home
-  void shiftGPress();    // Take stone
-  void shiftVPress();    // Gimbal Rate Mode
+  void shiftBRelease();
+  void shiftGPress();  // Take stone
+  void shiftVPress();  // Gimbal Rate Mode
   void shiftVRelease();
   void rPress();  //
   void qPressing();
@@ -83,13 +86,13 @@ private:
   void xPress();    //
   void cPress();    // Servo z
   void cRelease();  //
-  void bPress();    //
+  void bPressing();
   void bRelease();  //
-  void vPress();    // Reversal
+  void vPressing();
   void vRelease();
-  void fPress();             // Reversal
-  void fRelease();           //
-  void gPress();             // Reversal
+  void fPressing();
+  void fRelease();  //
+  void gPressing();
   void gRelease();           //
   void mouseLeftRelease();   // execute next
   void mouseRightRelease();  // execute repeat
