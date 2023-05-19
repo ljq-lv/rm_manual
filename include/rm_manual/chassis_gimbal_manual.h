@@ -62,11 +62,12 @@ protected:
   rm_common::ChassisCommandSender* chassis_cmd_sender_{};
 
   double x_scale_{}, y_scale_{};
-  bool speed_change_mode_{ 0 }, is_gyro_{ 0 };
-  double speed_change_scale_{ 1. };
+  bool speed_change_mode_{ 0 }, is_gyro_{ 0 },low_speed_change_mode_{ 0 };
+  double speed_change_scale_{ 1. },low_speed_change_scale_{ 1. };
   double gimbal_scale_{ 1. };
   double gyro_move_reduction_{ 1. };
   double gyro_rotate_reduction_{ 1. };
+  double finish_turning_threshold_{};
 
   InputEvent chassis_power_on_event_, gimbal_power_on_event_, w_event_, s_event_, a_event_, d_event_;
 };
