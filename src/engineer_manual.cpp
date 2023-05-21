@@ -217,6 +217,12 @@ void EngineerManual::gpioStateCallback(const rm_msgs::GpioData ::ConstPtr& data)
     gripper_state_ = "close";
 }
 
+void EngineerManual::shiftRPressing()
+{
+  autoExchange();
+  is_enter_auto_ = true;
+}
+
 void EngineerManual::autoExchange()
 {
   switch (auto_process_)
@@ -239,6 +245,22 @@ void EngineerManual::autoExchange()
   }
 }
 
+void EngineerManual::shiftRRelease()
+{
+  auto_process_ = FIND;
+  chassis_error_pos_ = 1e10;
+  chassis_error_yaw_ = 1e10;
+  move_times_ = 0;
+  is_move_start_ = false;
+  move_finish_ = false;
+  is_recorded_ = false;
+  is_search_finish_ = false;
+  is_pre_adjust_finish_ = false;
+  is_move_finish_ = false;
+  is_post_adjust_finish_ = false;
+  is_enter_auto_ = false;
+}
+
 void EngineerManual::find()
 {
   {
@@ -250,7 +272,7 @@ void EngineerManual::find()
     }
     else
     {
-       // runStepQueue("SIDE_GIMBAL");
+      // runStepQueue("SIDE_GIMBAL");
       ROS_INFO("ready to switch state");
       auto_process_ = PRE_ADJUST;
     }
@@ -273,24 +295,24 @@ void EngineerManual::move()
 {
   if (!is_move_finish_)
   {
-//      if (!operating_mode_)
-//        ROS_INFO_STREAM("MIDDLEWARE");
-//      else if (operating_mode_)
-//          ROS_INFO_STREAM("MANUAL");
-//      if (move_finish_)
-//          ROS_INFO_STREAM("FINISH!!!!!!!!!!!!!!!!!!!!!!!!");
-      if (operating_mode_ == MANUAL && !is_move_start_)
-      {
-          autoMove();
-          ROS_INFO_STREAM("MOVE");
-      }
-      if (move_finish_)
-      {
-          sleep(3);
-          isArmFinish();
-      }
-      if (is_need_post_adjust_)
-          auto_process_ = POST_ADJUST;
+    //      if (!operating_mode_)
+    //        ROS_INFO_STREAM("MIDDLEWARE");
+    //      else if (operating_mode_)
+    //          ROS_INFO_STREAM("MANUAL");
+    //      if (move_finish_)
+    //          ROS_INFO_STREAM("FINISH!!!!!!!!!!!!!!!!!!!!!!!!");
+    if (operating_mode_ == MANUAL && !is_move_start_)
+    {
+      autoMove();
+      ROS_INFO_STREAM("MOVE");
+    }
+    if (move_finish_)
+    {
+      sleep(3);
+      isArmFinish();
+    }
+    if (is_need_post_adjust_)
+      auto_process_ = POST_ADJUST;
   }
   else
     auto_process_ = FINISH;
@@ -300,7 +322,7 @@ void EngineerManual::postAdjust()
 {
   move_finish_ = false;
   is_move_start_ = false;
-  is_need_post_adjust_= false;
+  is_need_post_adjust_ = false;
   if (!is_post_adjust_finish_)
   {
     autoPostAdjust();
@@ -386,15 +408,15 @@ void EngineerManual::autoPostAdjust()
 void EngineerManual::autoMove()
 {
   move_times_++;
-  prefix_="EXCHANGE_AUTO_";
+  prefix_ = "EXCHANGE_AUTO_";
   if (move_times_ == 1)
-      root_="ONE";
+    root_ = "ONE";
   else if (move_times_ == 2)
-      root_="TWO";
+    root_ = "TWO";
   else
-      root_="THREE";
-  is_move_start_= true;
-  runStepQueue(prefix_+root_);
+    root_ = "THREE";
+  is_move_start_ = true;
+  runStepQueue(prefix_ + root_);
 }
 
 void EngineerManual::isArmFinish()
@@ -510,19 +532,19 @@ void EngineerManual::autoPostAdjustChassis()
     setChassisTarget(goal_x, goal_y, 0.);
     is_recorded_ = true;
   }
-  if (abs(link22base_.transform.translation.x)>0.05 || abs(link32base_.transform.translation.y)>0.05)
-      runStepQueue("JOINT_TWO_AND_THREE_BACK");
+  if (abs(link22base_.transform.translation.x) > 0.05 || abs(link32base_.transform.translation.y) > 0.05)
+    runStepQueue("JOINT_TWO_AND_THREE_BACK");
   //  ROS_INFO_STREAM(link22base_);
   //  ROS_INFO_STREAM(link32base_);
-  if (operating_mode_==MANUAL)
+  if (operating_mode_ == MANUAL)
   {
-      if (!isChassisFinish())
-          moveChassis();
-      else
-      {
-          is_recorded_ = false;
-          is_post_adjust_finish_ = true;
-      }
+    if (!isChassisFinish())
+      moveChassis();
+    else
+    {
+      is_recorded_ = false;
+      is_post_adjust_finish_ = true;
+    }
   }
 }
 
@@ -676,7 +698,8 @@ void EngineerManual::actionDoneCallback(const actionlib::SimpleClientGoalState& 
     speed_change_scale_ = 0.3;
   if (prefix_ + root_ == "EXCHANGE_AUTO_ONE" || prefix_ + root_ == "EXCHANGE_AUTO_TWO" ||
       prefix_ + root_ == "EXCHANGE_AUTO_THREE")
-      move_finish_ = true;
+    move_finish_ = true;
+  ROS_INFO("%i", result->finish);
   operating_mode_ = MANUAL;
 }
 void EngineerManual::actuatorStateCallback(const rm_msgs::ActuatorState::ConstPtr& data)
@@ -740,7 +763,7 @@ void EngineerManual::ctrlEPress()
   root_ = "STONE_SMALL_ISLAND";
   speed_change_mode_ = true;
   speed_change_scale_ = 0.03;
-  runStepQueue(prefix_+root_);
+  runStepQueue(prefix_ + root_);
   ROS_INFO("%s", (prefix_ + root_).c_str());
 }
 
@@ -829,9 +852,9 @@ void EngineerManual::ctrlZPressing()
 
 void EngineerManual::ctrlZRelease()
 {
-    prefix_ = "EXCHANGE_";
-    root_ = "AUTO_ONE";
-    runStepQueue(prefix_ + root_);
+  prefix_ = "EXCHANGE_";
+  root_ = "AUTO_ONE";
+  runStepQueue(prefix_ + root_);
 }
 
 void EngineerManual::ctrlQPress()
@@ -890,7 +913,7 @@ void EngineerManual::ctrlBPress()
 
 void EngineerManual::qPressing()
 {
-  vel_cmd_sender_->setAngularZVel(speed_change_mode_ ? gyro_low_scale_ : gyro_scale_);
+  vel_cmd_sender_->setAngularZVel(speed_change_mode_ ? 0.05 : gyro_scale_);
 }
 
 void EngineerManual::qRelease()
@@ -900,7 +923,7 @@ void EngineerManual::qRelease()
 
 void EngineerManual::ePressing()
 {
-  vel_cmd_sender_->setAngularZVel(speed_change_mode_ ? -gyro_low_scale_ : -gyro_scale_);
+  vel_cmd_sender_->setAngularZVel(speed_change_mode_ ? -0.05 : -gyro_scale_);
 }
 
 void EngineerManual::eRelease()
@@ -1022,27 +1045,6 @@ void EngineerManual::shiftFPress()
 {
   runStepQueue("EXCHANGE_GIMBAL");
   ROS_INFO("enter gimbal EXCHANGE_GIMBAL");
-}
-void EngineerManual::shiftRPressing()
-{
-  autoExchange();
-  is_enter_auto_ = true;
-}
-
-void EngineerManual::shiftRRelease()
-{
-  auto_process_ = FIND;
-  chassis_error_pos_ = 1e10;
-  chassis_error_yaw_ = 1e10;
-  move_times_ = 0;
-  is_move_start_= false;
-  move_finish_ = false;
-  is_recorded_ = false;
-  is_search_finish_ = false;
-  is_pre_adjust_finish_ = false;
-  is_move_finish_ = false;
-  is_post_adjust_finish_ = false;
-  is_enter_auto_ = false;
 }
 
 void EngineerManual::shiftCPress()
