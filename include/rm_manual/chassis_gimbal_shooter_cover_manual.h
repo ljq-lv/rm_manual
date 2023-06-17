@@ -25,15 +25,21 @@ protected:
   void rightSwitchDownRise() override;
   void rightSwitchMidRise() override;
   void rightSwitchUpRise() override;
-  void ctrlZPress();
-  void ctrlZRelease()
+  void rPress() override;
+  void ePress() override;
+  void ctrlQPress() override;
+  void zPressing();
+  void zRelease();
+  virtual void ctrlZPress();
+  virtual void ctrlZRelease()
   {
     gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
   };
-  void ctrlQPress();
+  rm_common::SwitchDetectionCaller* switch_buff_srv_{};
+  rm_common::SwitchDetectionCaller* switch_buff_type_srv_{};
   rm_common::JointPositionBinaryCommandSender* cover_command_sender_{};
   rm_common::CalibrationQueue* gimbal_calibration_;
-  InputEvent ctrl_z_event_, ctrl_q_event_;
+  InputEvent ctrl_z_event_, ctrl_q_event_, x_event_, z_event_;
   std::string supply_frame_;
   bool supply_ = false;
   bool cover_close_ = true;

@@ -42,7 +42,7 @@ public:
     DIRECT
   };
 
-  enum AutoProcess
+  enum AutoExchangeProcess
   {
     FIND,
     PRE_ADJUST,
@@ -64,6 +64,8 @@ private:
   void actionFeedbackCallback(const rm_msgs::EngineerFeedbackConstPtr& feedback);
   void actionDoneCallback(const actionlib::SimpleClientGoalState& state, const rm_msgs::EngineerResultConstPtr& result);
   void runStepQueue(const std::string& step_queue_name);
+  void initMode();
+  void servoMode();
   void actionActiveCallback()
   {
     operating_mode_ = MIDDLEWARE;
@@ -102,6 +104,7 @@ private:
   void shiftBPress();
   void shiftBRelease();
   void shiftGPress();
+  void shiftRPress();
   void shiftRPressing();
   void shiftRRelease();
   void shiftVPress();
@@ -117,14 +120,14 @@ private:
   void xPress();
   void cPressing();
   void cRelease();
-  void bPressing();
-  void bRelease();
-  void vPressing();
-  void vRelease();
-  void fPress();
-  void fRelease();
-  void gPress();
-  void gRelease();
+//  void bPressing();
+//  void bRelease();
+//  void vPressing();
+//  void vRelease();
+//  void fPress();
+//  void fRelease();
+//  void gPress();
+//  void gRelease();
 
   void mouseLeftRelease();
   void mouseRightRelease();
@@ -132,6 +135,7 @@ private:
   void exchangeCallback(const rm_msgs::ExchangerMsg::ConstPtr& data);
   void gpioStateCallback(const rm_msgs::GpioData::ConstPtr& data);
   void stoneNumCallback(const std_msgs::String ::ConstPtr& data);
+//  void gameRobotHpCallback(const rm_msgs::GameRobotHp::ConstPtr& data) override;
   void sendUi();
 
   void autoExchange();
@@ -155,12 +159,13 @@ private:
   bool change_flag_{ true }, is_exchange_{}, target_shape_{}, reversal_motion_{}, is_joint7_up_{ true },
       is_enter_auto_{ false }, is_search_finish_{ false }, is_pre_adjust_finish_{ false },
       is_post_adjust_finish_{ false }, is_move_finish_{ false }, is_need_post_adjust_{ false }, is_recorded_{ false },
-      move_finish_{ false }, set_once_flag_{ false },is_move_start_{false};
-  int operating_mode_{}, servo_mode_{}, gimbal_mode_{}, stone_num_{}, max_temperature_{}, auto_process_{ 0 };
-  double angular_z_scale_{}, gyro_scale_{}, gyro_low_scale_{}, pitch_min_{}, pitch_max_{}, yaw_min_{}, yaw_max_{},
-      yaw_direct_{ 1. }, pitch_direct_{ 1. }, search_angle_{}, chassis_search_vel_{}, gimbal_search_vel_{},
-      store_chassis_search_vel_{}, store_gimbal_search_vel_{}, move_times_{}, lock_time_{}, chassis_pos_tolerance_{},
-      chassis_angular_tolerance_, x_start_value_{}, chassis_error_pos_{}, chassis_error_yaw_{};
+      move_finish_{ false }, set_once_flag_{ false }, is_move_start_{ false }, pre_arm_start_{ false };
+  int operating_mode_{}, servo_mode_{}, gimbal_mode_{}, stone_num_{}, max_temperature_{}, auto_exchange_process_{ 0 };
+  double angular_z_scale_{}, gyro_scale_{}, gyro_low_scale_{}, gyro_normal_scale_{},
+      gyro_exchange_scale_{}, pitch_min_{}, pitch_max_{}, yaw_min_{}, yaw_max_{}, yaw_direct_{ 1. },
+      pitch_direct_{ 1. }, search_angle_{}, chassis_search_vel_{}, gimbal_search_vel_{}, store_chassis_search_vel_{},
+      store_gimbal_search_vel_{}, move_times_{}, lock_time_{}, chassis_pos_tolerance_{}, chassis_angular_tolerance_,
+      x_start_value_{}, chassis_error_pos_{}, chassis_error_yaw_{}, pre_yaw_scales_{};
   std::string prefix_{}, root_{}, drag_state_{ "on" }, max_temperature_joint_{}, joint_temperature_{},
       reversal_state_{}, gripper_state_{};
   geometry_msgs::TransformStamped base2yaw_{}, yaw2pitch_{}, exchange2base_{}, link22base_{}, link32base_{},
@@ -185,6 +190,6 @@ private:
       shift_c_event_, shift_v_event_, shift_b_event_, shift_g_event_, ctrl_r_event_, shift_q_event_, shift_f_event_,
       shift_e_event_, ctrl_g_event_, shift_r_event_, ctrl_f_event_, shift_event_, g_event_, r_event_, mouse_left_event_,
       mouse_right_event_;
+  bool test_state_{0};
 };
-
 }  // namespace rm_manual

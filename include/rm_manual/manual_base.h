@@ -8,6 +8,7 @@
 #include <iostream>
 #include <ros/ros.h>
 #include <serial/serial.h>
+#include <std_msgs/Bool.h>
 #include <tf2_ros/buffer.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_listener.h>
@@ -20,17 +21,19 @@
 #include <rm_common/ros_utilities.h>
 #include <rm_common/decision/command_sender.h>
 #include <rm_common/decision/controller_manager.h>
+#include <rm_common/decision/calibration_queue.h>
 
 #include <rm_msgs/DbusData.h>
 #include <rm_msgs/TrackData.h>
 #include <rm_msgs/GameStatus.h>
 #include <rm_msgs/GameRobotHp.h>
-#include <rm_msgs/CapacityData.h>
+#include <rm_msgs/BalanceState.h>
 #include <rm_msgs/PowerHeatData.h>
 #include <rm_msgs/ActuatorState.h>
 #include <rm_msgs/GimbalDesError.h>
 #include <rm_msgs/GameRobotStatus.h>
 #include <rm_msgs/ManualToReferee.h>
+#include <rm_msgs/PowerManagementSampleAndStatusData.h>
 #include "rm_manual/input_event.h"
 
 namespace rm_manual
@@ -54,26 +57,31 @@ protected:
   virtual void updateRc(const rm_msgs::DbusData::ConstPtr& dbus_data);
   virtual void updatePc(const rm_msgs::DbusData::ConstPtr& dbus_data);
   virtual void sendCommand(const ros::Time& time) = 0;
+  virtual void updateActuatorStamp(const rm_msgs::ActuatorState::ConstPtr& data, std::vector<std::string> act_vector,
+                                   ros::Time& last_get_stamp);
 
   virtual void jointStateCallback(const sensor_msgs::JointState::ConstPtr& data);
   virtual void dbusDataCallback(const rm_msgs::DbusData::ConstPtr& data);
   virtual void trackCallback(const rm_msgs::TrackData::ConstPtr& data);
   virtual void gameRobotStatusCallback(const rm_msgs::GameRobotStatus::ConstPtr& data);
   virtual void powerHeatDataCallback(const rm_msgs::PowerHeatData::ConstPtr& data);
-  virtual void capacityDataCallback(const rm_msgs::CapacityData ::ConstPtr& data);
+  virtual void capacityDataCallback(const rm_msgs::PowerManagementSampleAndStatusData::ConstPtr& data)
+  {
+  }
   virtual void gimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr& data)
   {
   }
   virtual void odomCallback(const nav_msgs::Odometry::ConstPtr& data)
   {
   }
-  virtual void actuatorStateCallback(const rm_msgs::ActuatorState::ConstPtr& data)
-  {
-  }
+  virtual void actuatorStateCallback(const rm_msgs::ActuatorState::ConstPtr& data);
   virtual void gameRobotHpCallback(const rm_msgs::GameRobotHp::ConstPtr& data)
   {
   }
   virtual void gameStatusCallback(const rm_msgs::GameStatus::ConstPtr& data)
+  {
+  }
+  virtual void suggestFireCallback(const std_msgs::Bool::ConstPtr& data)
   {
   }
 
@@ -84,7 +92,7 @@ protected:
   }
   virtual void gimbalOutputOn()
   {
-    ROS_INFO("Gimbal output ON");
+//    ROS_INFO("Gimbal output ON");
   }
   virtual void shooterOutputOn()
   {
@@ -97,10 +105,17 @@ protected:
   virtual void remoteControlTurnOff();
   virtual void remoteControlTurnOn();
   virtual void leftSwitchDownRise(){};
+  virtual void leftSwitchDownOn(){};
   virtual void leftSwitchMidRise(){};
   virtual void leftSwitchMidFall(){};
+  virtual void leftSwitchMidOn(){};
   virtual void leftSwitchUpRise(){};
+  virtual void leftSwitchUpOn(){};
   virtual void rightSwitchDownRise()
+  {
+    state_ = IDLE;
+  }
+  virtual void rightSwitchDownOn()
   {
     state_ = IDLE;
   }
@@ -108,7 +123,15 @@ protected:
   {
     state_ = RC;
   }
+  virtual void rightSwitchMidOn()
+  {
+    state_ = RC;
+  }
   virtual void rightSwitchUpRise()
+  {
+    state_ = PC;
+  }
+  virtual void rightSwitchUpOn()
   {
     state_ = PC;
   }
@@ -116,7 +139,8 @@ protected:
   ros::Publisher manual_to_referee_pub_;
 
   ros::Subscriber odom_sub_, dbus_sub_, track_sub_, referee_sub_, capacity_sub_, game_status_sub_, joint_state_sub_,
-      game_robot_hp_sub_, actuator_state_sub_, power_heat_data_sub_, gimbal_des_error_sub_, game_robot_status_sub_;
+      game_robot_hp_sub_, actuator_state_sub_, power_heat_data_sub_, gimbal_des_error_sub_, game_robot_status_sub_,
+      suggest_fire_sub_;
 
   sensor_msgs::JointState joint_state_;
   rm_msgs::TrackData track_data_;
@@ -135,6 +159,10 @@ protected:
   int robot_id_, chassis_power_;
   InputEvent robot_hp_event_, right_switch_down_event_, right_switch_mid_event_, right_switch_up_event_,
       left_switch_down_event_, left_switch_mid_event_, left_switch_up_event_;
+
+  InputEvent chassis_power_on_event_, gimbal_power_on_event_, shooter_power_on_event_;
+  ros::Time chassis_actuator_last_get_stamp_, gimbal_actuator_last_get_stamp_, shooter_actuator_last_get_stamp_;
+  std::vector<std::string> chassis_mount_motor_, gimbal_mount_motor_, shooter_mount_motor_;
 };
 
 }  // namespace rm_manual

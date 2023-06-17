@@ -12,12 +12,17 @@ ChassisGimbalShooterCoverManual::ChassisGimbalShooterCoverManual(ros::NodeHandle
   ros::NodeHandle cover_nh(nh, "cover");
   nh.param("supply_frame", supply_frame_, std::string("supply_frame"));
   cover_command_sender_ = new rm_common::JointPositionBinaryCommandSender(cover_nh);
+  ros::NodeHandle buff_switch_nh(nh, "buff_switch");
+  switch_buff_srv_ = new rm_common::SwitchDetectionCaller(buff_switch_nh);
+  ros::NodeHandle buff_type_switch_nh(nh, "buff_type_switch");
+  switch_buff_type_srv_ = new rm_common::SwitchDetectionCaller(buff_type_switch_nh);
   XmlRpc::XmlRpcValue rpc_value;
   nh.getParam("gimbal_calibration", rpc_value);
   gimbal_calibration_ = new rm_common::CalibrationQueue(rpc_value, nh, controller_manager_);
   ctrl_z_event_.setEdge(boost::bind(&ChassisGimbalShooterCoverManual::ctrlZPress, this),
                         boost::bind(&ChassisGimbalShooterCoverManual::ctrlZRelease, this));
-  ctrl_q_event_.setRising(boost::bind(&ChassisGimbalShooterCoverManual::ctrlQPress, this));
+  z_event_.setActiveHigh(boost::bind(&ChassisGimbalShooterCoverManual::zPressing, this));
+  z_event_.setFalling(boost::bind(&ChassisGimbalShooterCoverManual::zRelease, this));
 }
 
 void ChassisGimbalShooterCoverManual::run()
@@ -36,13 +41,17 @@ void ChassisGimbalShooterCoverManual::updatePc(const rm_msgs::DbusData::ConstPtr
 void ChassisGimbalShooterCoverManual::checkReferee()
 {
   manual_to_referee_pub_data_.cover_state = cover_command_sender_->getState();
+  if (switch_detection_srv_->getTarget() != rm_msgs::StatusChangeRequest::ARMOR)
+    manual_to_referee_pub_data_.det_target = switch_buff_type_srv_->getTarget();
+  else
+    manual_to_referee_pub_data_.det_target = switch_detection_srv_->getTarget();
   ChassisGimbalShooterManual::checkReferee();
 }
 void ChassisGimbalShooterCoverManual::checkKeyboard(const rm_msgs::DbusData::ConstPtr& dbus_data)
 {
   ChassisGimbalShooterManual::checkKeyboard(dbus_data);
   ctrl_z_event_.update(dbus_data->key_ctrl & dbus_data->key_z);
-  ctrl_q_event_.update(dbus_data->key_ctrl & dbus_data->key_q);
+  z_event_.update((!dbus_data->key_ctrl) & dbus_data->key_z);
 }
 
 void ChassisGimbalShooterCoverManual::sendCommand(const ros::Time& time)
@@ -51,7 +60,6 @@ void ChassisGimbalShooterCoverManual::sendCommand(const ros::Time& time)
   {
     chassis_cmd_sender_->getMsg()->follow_source_frame = supply_frame_;
     chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::FOLLOW);
-    chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::NORMAL);
     cover_close_ = false;
     try
     {
@@ -79,7 +87,6 @@ void ChassisGimbalShooterCoverManual::sendCommand(const ros::Time& time)
         {
           chassis_cmd_sender_->getMsg()->follow_source_frame = supply_frame_;
           chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::FOLLOW);
-          chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::NORMAL);
         }
         else
         {
@@ -133,13 +140,54 @@ void ChassisGimbalShooterCoverManual::rightSwitchUpRise()
   supply_ = false;
 }
 
+void ChassisGimbalShooterCoverManual::rPress()
+{
+  if (switch_buff_srv_->getTarget() != rm_msgs::StatusChangeRequest::ARMOR)
+  {
+    chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::CHARGE);
+    if (switch_buff_type_srv_->getTarget() == rm_msgs::StatusChangeRequest::SMALL_BUFF)
+      switch_buff_type_srv_->setTargetType(rm_msgs::StatusChangeRequest::BIG_BUFF);
+    else
+      switch_buff_type_srv_->setTargetType(rm_msgs::StatusChangeRequest::SMALL_BUFF);
+    switch_buff_type_srv_->callService();
+  }
+  else
+    chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::NORMAL);
+}
+
+void ChassisGimbalShooterCoverManual::ePress()
+{
+  switch_buff_srv_->switchTargetType();
+  switch_detection_srv_->switchTargetType();
+  switch_buff_type_srv_->setTargetType(switch_buff_srv_->getTarget());
+  switch_buff_srv_->callService();
+  switch_detection_srv_->callService();
+  switch_buff_type_srv_->callService();
+}
+
+void ChassisGimbalShooterCoverManual::zPressing()
+{
+  shooter_cmd_sender_->setShootFrequency(rm_common::HeatLimit::MINIMAL);
+}
+
+void ChassisGimbalShooterCoverManual::zRelease()
+{
+  shooter_cmd_sender_->setShootFrequency(rm_common::HeatLimit::LOW);
+}
+
 void ChassisGimbalShooterCoverManual::ctrlZPress()
 {
+  if (!cover_command_sender_->getState())
+    chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::CHARGE);
+  else
+    chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::NORMAL);
   supply_ = !cover_command_sender_->getState();
 }
 
 void ChassisGimbalShooterCoverManual::ctrlQPress()
 {
+  ChassisGimbalShooterManual::ctrlQPress();
   gimbal_calibration_->reset();
 }
+
 }  // namespace rm_manual
